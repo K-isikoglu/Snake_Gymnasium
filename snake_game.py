@@ -52,23 +52,22 @@ class SnakeGame:
                 return
 
     def handle_input(self):
-        new_dir = self.direction
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT and self.direction[0] != 1:
-                    new_dir = (-1, 0)
+                    self.next_direction = (-1, 0)
                 elif event.key == pygame.K_RIGHT and self.direction[0] != -1:
-                    new_dir = (1, 0)
+                    self.next_direction = (1, 0)
                 elif event.key == pygame.K_UP and self.direction[1] != 1:
-                    new_dir = (0, -1)
+                    self.next_direction = (0, -1)
                 elif event.key == pygame.K_DOWN and self.direction[1] != -1:
-                    new_dir = (0, 1)
-        self.direction = new_dir
+                    self.next_direction = (0, 1)
 
     def update_snake(self):
+        self.direction = self.next_direction
         new_head = [self.snake[0][0] + self.direction[0], self.snake[0][1] + self.direction[1]]
         self.snake.insert(0, new_head)
         
