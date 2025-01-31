@@ -29,6 +29,16 @@ class Renderer:
         self.grid_map = np.zeros((grid_width, grid_height))
         self.screen = pygame.display.set_mode((width, height))
 
+    def get_grid_map(self, snake, food_pos) -> np.ndarray:
+        self.grid_map = np.zeros((self.grid_width, self.grid_height))
+        for i, segment in enumerate(snake):
+            if i == 0:
+                self.grid_map[tuple(segment)] = GridMap.HEAD.value
+            else:
+                self.grid_map[tuple(segment)] = GridMap.BODY.value
+        self.grid_map[tuple(food_pos)] = GridMap.FOOD.value
+        return self.grid_map
+
     def render(self, snake, food_pos, score) -> np.ndarray:
         self.grid_map = np.zeros((self.grid_width, self.grid_height))
         self._render_game_background()

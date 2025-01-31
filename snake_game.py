@@ -35,7 +35,7 @@ class SnakeGame:
 
         self.renderer = Renderer(WIDTH, HEIGHT, GRID_SIZE, GRID_WIDTH, GRID_HEIGHT)
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
         self.grid_map = np.zeros((GRID_WIDTH, GRID_HEIGHT))
         self.snake = [
                 [GRID_WIDTH // 2, GRID_HEIGHT // 2],
@@ -47,15 +47,17 @@ class SnakeGame:
         self.next_direction = (1, 0)
         self.score = 0
 
+        return self.grid_map
+
 
     def start_game(self):
         self.reset()
         while True:
             if self.game_mode == GameMode.PLAY:
-                self._handle_input()
-            self._update_snake()
-            self._check_collision()
-            self.renderer.render(self.snake, self.food_pos, self.score)
+                self.handle_input()
+            self.update_snake()
+            self.check_collision()
+            self.render()
             self.clock.tick(self.fps)
 
     def generate_food(self):
@@ -65,7 +67,7 @@ class SnakeGame:
                 self.food_pos = pos
                 return
 
-    def _handle_input(self):
+    def handle_input(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -90,7 +92,7 @@ class SnakeGame:
         elif snake_action == SnakeAction.DOWN and self.direction[1] != -1:
             self.next_direction = (0, 1)
 
-    def _update_snake(self):
+    def update_snake(self):
         self.direction = self.next_direction
         new_head = [self.snake[0][0] + self.direction[0], self.snake[0][1] + self.direction[1]]
         self.snake.insert(0, new_head)
@@ -101,11 +103,16 @@ class SnakeGame:
         else:
             self.snake = self.snake[:-1]
 
-    def _check_collision(self):
+    def check_collision(self):
         head = self.snake[0]
+        is_game_over = False
         if (head[0] < 0 or head[0] >= GRID_WIDTH or 
             head[1] < 0 or head[1] >= GRID_HEIGHT or
             head in self.snake[1:]):
+            is_game_over = True
+        if self.game_mode == GameMode.TRAIN:
+            return is_game_over
+        elif is_game_over:
             self.game_over()
     
     def game_over(self):
@@ -115,6 +122,12 @@ class SnakeGame:
                 if event.type in (pygame.QUIT, pygame.KEYDOWN):
                     pygame.quit()
                     sys.exit()
+
+    def render(self):
+        if self.game_mode == GameMode.TRAIN:
+            self.grid_map = self.renderer.get_grid_map(self.snake, self.food_pos)
+        else:
+            self.grid_map = self.renderer.render(self.snake, self.food_pos, self.score)
 
 if __name__ == "__main__":
     game = SnakeGame(GameMode.PLAY)
