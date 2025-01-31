@@ -26,27 +26,27 @@ class Renderer:
         self.grid_width = grid_width
         self.grid_height = grid_height
 
-        self.grid_map = np.zeros((grid_width, grid_height))
         self.screen = pygame.display.set_mode((width, height))
 
     def get_grid_map(self, snake, food_pos) -> np.ndarray:
-        self.grid_map = np.zeros((self.grid_width, self.grid_height))
+        grid_map = self.get_empty_grid_map()
         for i, segment in enumerate(snake):
             if i == 0:
-                self.grid_map[tuple(segment)] = GridMap.HEAD.value
+                grid_map[tuple(segment)] = GridMap.HEAD.value
             else:
-                self.grid_map[tuple(segment)] = GridMap.BODY.value
-        self.grid_map[tuple(food_pos)] = GridMap.FOOD.value
-        return self.grid_map
+                grid_map[tuple(segment)] = GridMap.BODY.value
+        grid_map[tuple(food_pos)] = GridMap.FOOD.value
+        return grid_map
 
-    def render(self, snake, food_pos, score) -> np.ndarray:
-        self.grid_map = np.zeros((self.grid_width, self.grid_height))
+    def render(self, snake, food_pos, score):
         self._render_game_background()
         self._render_snake(snake)
         self._render_food(food_pos)
         self._render_score(score)
         pygame.display.update()
-        return self.grid_map
+    
+    def get_empty_grid_map(self):
+        return np.zeros((self.grid_width, self.grid_height), np.uint8)
 
     def _render_game_background(self):
         self.screen.fill(BLACK)
@@ -58,18 +58,12 @@ class Renderer:
 
     def _render_snake(self, snake):
         for i, segment in enumerate(snake):
-            if i == 0:
-                color = HEAD_COLOR
-                self.grid_map[tuple(segment)] = GridMap.HEAD.value
-            else:
-                color = GREEN
-                self.grid_map[tuple(segment)] = GridMap.BODY.value
+            color = HEAD_COLOR if i == 0 else GREEN
             x_pos = segment[0] * self.grid_size
             y_pos = segment[1] * self.grid_size + 40
             pygame.draw.rect(self.screen, color, (x_pos, y_pos, self.grid_size-1, self.grid_size-1))
 
     def _render_food(self, food_pos):
-        self.grid_map[tuple(food_pos)] = GridMap.FOOD.value
         food_x = food_pos[0] * self.grid_size
         food_y = food_pos[1] * self.grid_size + 40
         pygame.draw.rect(self.screen, RED, (food_x, food_y, self.grid_size-1, self.grid_size-1))

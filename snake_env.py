@@ -1,17 +1,13 @@
 import gymnasium as gym
 from gymnasium import spaces
-from gymnasium.envs.registration import register
+from gymnasium.utils.env_checker import check_env
 
 import pygame
+import numpy as np
 
 import snake_game
 from snake_game import SnakeAction, GameMode, SnakeGame
-import numpy as np
-
-register(
-    id = 'snake-game-v0',
-    entry_point = 'snake_env:SnakeEnv'
-)
+import snake_env_register
 
 REWARD_FOR_COLLIDING = -200
 REWARD_FOR_EATING = 20
@@ -35,8 +31,9 @@ class SnakeEnv(gym.Env):
         )
 
     def reset(self, seed=None, options=None):
-        super().reset()
-        obs = self.my_snake.reset()
+        super().reset(seed=seed)
+        np_random, _ = gym.utils.seeding.np_random(seed)
+        obs = self.my_snake.reset(np_random)
         info = {}
 
         return obs, info
@@ -51,7 +48,10 @@ class SnakeEnv(gym.Env):
         if self.my_snake.check_collision():
             reward += REWARD_FOR_COLLIDING
             terminated = True
-        obs = self.render()
+        if self.render_mode == 'human':
+            self.render()
+        
+        obs = self.my_snake.get_grid_map()
 
         info = {}
 
@@ -64,6 +64,7 @@ class SnakeEnv(gym.Env):
 
     def render(self):
         self.my_snake.render()
+        return None
 
     def close(self):
         pass
@@ -71,10 +72,13 @@ class SnakeEnv(gym.Env):
 if __name__ == "__main__":
     env = gym.make('snake-game-v0', render_mode='human')
 
+    print('Check environment begin')
+    check_env(env.unwrapped)
+    print('Check environment end')
+
     obs = env.reset()[0]
 
     clock = pygame.time.Clock()
-
     for i in range(1000):
         rand_action = env.action_space.sample()
         obs, reward, terminated, _, _ = env.step(rand_action)

@@ -35,19 +35,19 @@ class SnakeGame:
 
         self.renderer = Renderer(WIDTH, HEIGHT, GRID_SIZE, GRID_WIDTH, GRID_HEIGHT)
 
-    def reset(self) -> np.ndarray:
-        self.grid_map = np.zeros((GRID_WIDTH, GRID_HEIGHT))
+    def reset(self, np_random=None) -> np.ndarray:
         self.snake = [
                 [GRID_WIDTH // 2, GRID_HEIGHT // 2],
                 [GRID_WIDTH // 2 - 1, GRID_HEIGHT // 2]
         ]
         self.food_pos = None
+        self.np_random = np_random if np_random else np.random.default_rng()
         self.generate_food()
         self.direction = (1, 0)
         self.next_direction = (1, 0)
         self.score = 0
 
-        return self.grid_map
+        return self.renderer.get_empty_grid_map()
 
 
     def start_game(self):
@@ -62,7 +62,10 @@ class SnakeGame:
 
     def generate_food(self):
         while True:
-            pos = [random.randint(0, GRID_WIDTH-1), random.randint(0, GRID_HEIGHT-1)]
+            pos = [
+                self.np_random.integers(0, GRID_WIDTH-1),
+                self.np_random.integers(0, GRID_HEIGHT-1)
+            ]
             if pos not in self.snake:
                 self.food_pos = pos
                 return
@@ -124,10 +127,11 @@ class SnakeGame:
                     sys.exit()
 
     def render(self):
-        if self.game_mode == GameMode.TRAIN:
-            self.grid_map = self.renderer.get_grid_map(self.snake, self.food_pos)
-        else:
-            self.grid_map = self.renderer.render(self.snake, self.food_pos, self.score)
+        if self.game_mode != GameMode.TRAIN:
+            self.renderer.render(self.snake, self.food_pos, self.score)
+            
+    def get_grid_map(self):
+        return self.renderer.get_grid_map(self.snake, self.food_pos)
 
 if __name__ == "__main__":
     game = SnakeGame(GameMode.PLAY)
